@@ -1,0 +1,11 @@
+Flask
+gunicorn
+Werkzeug
+scikit-learn
+pandas
+numpy
+joblib
+xgboost
+openpyxl
+google-generativeai
+requests

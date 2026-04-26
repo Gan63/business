@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Ficzon – AI Lead Intelligence Dashboard</title>
+    <meta name="description" content="Ficzon: AI-powered lead intelligence dashboard with real-time scoring, ML analytics, and conversational AI analyst."/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+</head>
+<body>
+<div class="app">
+ 
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+    </div>
+    <span class="logo-text">Ficzon</span>
+  </div>
+ 
+  <nav class="nav">
+    <div class="nav-section-label">Main</div>
+    <div class="nav-item active" data-target="dashboard">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
+      Dashboard
+      <span class="nav-badge" id="sidebar-badge">0</span>
+    </div>
+    <div class="nav-item" data-target="leads">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+      Leads
+    </div>
+    <div class="nav-item" data-target="scoring">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+      Scoring
+    </div>
+    <div class="nav-section-label">Insights</div>
+    <div class="nav-item" data-target="analytics">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+      Analytics
+    </div>
+  </nav>
+ 
+</aside>
+ 
+<!-- MAIN -->
+<main class="main">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-title">
+      <h1>Ficzon Report</h1>
+      <p>Real-time lead intelligence &amp; ML scoring</p>
+    </div>
+    <div class="header-actions">
+      <div class="search-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input class="search-input" placeholder="Search leads…" id="searchInput"/>
+      </div>
+    </div>
+  </header>
+ 
+  <!-- CONTENT -->
+  <div class="content" id="dashboard-section">
+ 
+    <!-- STAT CARDS -->
+    <div class="stats-grid">
+      <div class="glass stat-card">
+        <div class="stat-top">
+          <div class="stat-icon purple"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></div>
+        </div>
+        <div class="stat-label">Total Leads</div>
+        <div class="stat-value" id="stat-total-leads">--</div>
+        <div class="stat-sub">Across all channels</div>
+      </div>
+      <div class="glass stat-card">
+        <div class="stat-top">
+          <div class="stat-icon pink"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
+        </div>
+        <div class="stat-label">Hot Leads</div>
+        <div class="stat-value" id="stat-hot-leads">--</div>
+        <div class="stat-sub">Score &ge; 80 · Actionable</div>
+      </div>
+      <div class="glass stat-card">
+        <div class="stat-top">
+          <div class="stat-icon cyan"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+        </div>
+        <div class="stat-label">Avg Quality Score</div>
+        <div class="stat-value" id="stat-avg-score">--</div>
+        <div class="stat-sub">Composite ML score</div>
+      </div>
+      <div class="glass stat-card">
+        <div class="stat-top">
+          <div class="stat-icon green"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div>
+        </div>
+        <div class="stat-label">Cold Leads</div>
+        <div class="stat-value" id="stat-cold-leads">--</div>
+        <div class="stat-sub">Score &lt; 50 · Needs nurturing</div>
+      </div>
+    </div>
+ 
+    <!-- TOOLS GRID (Prediction & Upload) -->
+    <div class="grid-2">
+      <div class="glass chart-card" id="scoring-area">
+        <div class="chart-title">Score New Lead</div>
+        <div class="chart-sub">Instant ML prediction using XGBoost</div>
+        
+        <form id="prediction-form">
+          <div class="form-group">
+            <label>Product ID</label>
+            <input type="number" name="Product_ID" class="form-control" value="15" required>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group">
+              <label>Source</label>
+              <select name="Source" class="form-control">
+                <option value="Website">Website</option>
+                <option value="Live Chat">Live Chat</option>
+                <option value="Call">Call</option>
+                <option value="Existing Customer">Existing Customer</option>
+                <option value="Campaign">Campaign</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Location</label>
+              <select name="Location" class="form-control">
+                <option value="Bangalore">Bangalore</option>
+                <option value="Mumbai">Mumbai</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Delhi">Delhi</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Delivery Mode</label>
+            <select name="Delivery_Mode" class="form-control">
+              <option value="Mode-1">Mode-1</option>
+              <option value="Mode-2">Mode-2</option>
+              <option value="Mode-3">Mode-3</option>
+              <option value="Mode-4">Mode-4</option>
+              <option value="Mode-5">Mode-5</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-primary" id="score-btn">
+            Score Lead <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+          </button>
+        </form>
+
+        <div id="prediction-result" class="prediction-result hidden">
+          <div class="result-score">
+            <div class="value" id="res-score">--</div>
+            <div class="label">Score</div>
+          </div>
+          <div id="res-status-pill"></div>
+        </div>
+      </div>
+
+      <div class="glass chart-card">
+        <div class="chart-title">Batch Processing</div>
+        <div class="chart-sub">Upload CSV/Excel for bulk analysis</div>
+        
+        <div class="upload-dropzone" id="dropzone">
+          <input type="file" id="file-upload" accept=".csv, .xlsx, .xls" style="display: none;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 12px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          <p style="font-weight: 600; font-size: 14px; color: var(--text-primary); margin-bottom: 4px;">Click or drag file here</p>
+          <p style="font-size: 12px; color: var(--text-muted);">Supports .csv, .xlsx, .xls</p>
+          <div id="file-info" style="margin-top: 12px; font-weight: 700; color: #7c3aed; font-size: 12px;"></div>
+        </div>
+        
+        <button id="process-upload" class="btn-primary" style="margin-top: 16px; display: none;">
+          Process Data <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"></path><path d="m16 8-4 4-4-4"></path><path d="M20 21H4"></path></svg>
+        </button>
+
+        <div id="report-summary" class="hidden" style="margin-top: 20px; padding: 16px; background: rgba(124,58,237,0.05); border-radius: 12px;">
+           <div style="display: flex; justify-content: space-between; align-items: center;">
+             <span style="font-size: 13px; font-weight: 600;">Analysis Complete!</span>
+             <button id="download-report" class="section-link" style="background:none; border:none;">Download JSON <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="analytics-section">
+      <div class="section-header">
+        <div class="section-title"><div class="section-title-dot"></div>Analytics Insights</div>
+      </div>
+      <div class="analytics-grid">
+        <div class="glass chart-card">
+          <div class="chart-title">Conversion Trends</div>
+          <div class="chart-sub">Monthly lead conversion analysis</div>
+          <div style="position:relative;width:100%;height:220px;">
+            <canvas id="leadsChart"></canvas>
+          </div>
+        </div>
+        <div class="glass chart-card">
+          <div class="chart-title">Lead Sources</div>
+          <div class="chart-sub">Distribution by channel</div>
+          <div style="position:relative;width:100%;height:200px;">
+            <canvas id="sourcesChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- PERFORMANCE CHART -->
+    <div class="perf-section">
+      <div class="glass chart-card">
+        <div class="chart-title">Performance by Location</div>
+        <div class="chart-sub">Lead volume across major Indian cities</div>
+        <div style="position:relative;width:100%;height:240px;">
+          <canvas id="locationsChart"></canvas>
+        </div>
+      </div>
+    </div>
+ 
+    <!-- LEADS TABLE -->
+    <div id="leads-section">
+      <div class="section-header">
+        <div class="section-title"><div class="section-title-dot"></div>Recent Leads</div>
+      </div>
+      <div class="glass leads-card">
+        <table id="leadsTable">
+          <thead>
+            <tr>
+              <th>ID</th><th>Name</th><th>Score</th><th>Status</th><th>Source</th><th>Value</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leads-table-body">
+            <!-- Dynamic Data -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+ 
+  </div><!-- /content -->
+</main><!-- /main -->
+ 
+<!-- CHATBOT TOGGLE -->
+<button class="chat-toggle" id="chatbot-toggle">
+  <div class="pulse-ring"></div>
+  <div class="pulse-ring2"></div>
+  <svg id="chatIcon" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"></path><rect x="8" y="2" width="4" height="4" rx="1"></rect><path d="M17 19H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2z"></path><path d="M9 12h6"></path><path d="M9 16h4"></path></svg>
+</button>
+ 
+<!-- CHAT WINDOW -->
+<div class="chat-window hidden" id="chat-window">
+  <div class="chat-header">
+    <div class="chat-header-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></svg>
+    </div>
+    <div class="chat-header-info">
+      <div class="title">Ficzon AI Analyst</div>
+      <div class="online"><span class="online-dot"></span>Online · ML Powered</div>
+    </div>
+    <button class="chat-close" id="close-chat">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+    </button>
+  </div>
+  <div class="chat-messages" id="chat-messages">
+    <div class="msg bot"><div class="msg-bubble">Hello! I'm your Ficzon AI Analyst. Ask me anything about your leads, sources, or performance.</div></div>
+  </div>
+  <div class="chat-suggestions" id="chipArea">
+    <button class="chip" data-q="How many hot leads?">🔥 Hot leads?</button>
+    <button class="chip" data-q="Top source?">📊 Top source?</button>
+    <button class="chip" data-q="Best lead?">⭐ Best lead?</button>
+  </div>
+  <div class="chat-input-area">
+    <input class="chat-input" id="chat-input" placeholder="Ask about your leads…"/>
+    <button class="send-btn" id="send-chat">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </button>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal" id="edit-modal">
+    <div class="glass modal-content">
+        <div class="chart-title">Update Lead</div>
+        <div class="chart-sub">Modify company information</div>
+        <form id="edit-form">
+            <input type="hidden" id="edit-id">
+            <div class="form-group">
+                <label>Lead Name</label>
+                <input type="text" id="edit-name" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Company</label>
+                <input type="text" id="edit-company" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Value</label>
+                <input type="text" id="edit-value" class="form-control" required>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button type="button" class="btn-primary" style="background: rgba(124,58,237,0.1); color: #7c3aed; box-shadow: none;" id="close-modal-btn">Cancel</button>
+                <button type="submit" class="btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

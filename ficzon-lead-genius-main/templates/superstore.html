@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Superstore Analytics · Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Design Rules: Clean, flat design — no gradients, no shadows */
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: #333333;
+            
+            /* Color palette */
+            --blue: #378ADD;
+            --teal: #1D9E75;
+            --amber: #BA7517;
+            --pink: #D4537E;
+            --red: #E24B4A;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 32px;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            font-weight: 500;
+        }
+
+        .header-title {
+            font-size: 26px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* KPI Cards */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+        }
+
+        .kpi-title {
+            color: var(--text-muted);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .kpi-value {
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .kpi-value.teal { color: var(--teal); }
+        .kpi-value.amber { color: var(--amber); }
+        .kpi-value.blue { color: var(--blue); }
+        .kpi-value.pink { color: var(--pink); }
+
+        /* Chart Sections */
+        .chart-row {
+            margin-bottom: 24px;
+        }
+
+        .chart-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            flex-grow: 1;
+        }
+
+        .insight-text {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* Custom Legends */
+        .custom-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">Superstore Analytics Dashboard</div>
+
+    <!-- A. KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-title">Total Sales</div>
+            <div class="kpi-value blue">$2.30M</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Total Profit</div>
+            <div class="kpi-value teal">$286.4K</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Profit Margin</div>
+            <div class="kpi-value amber">12.5%</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Total Orders</div>
+            <div class="kpi-value pink">9.99K</div>
+        </div>
+    </div>
+
+    <!-- B. Trend Chart -->
+    <div class="chart-row">
+        <div class="chart-card">
+            <h3>Monthly Sales & Profit Trend</h3>
+            <div class="chart-container" style="height: 350px;">
+                <canvas id="trendChart"></canvas>
+            </div>
+            <div class="insight-text">
+                Sales peak consistently in Q4 each year, reaching a record high in late 2017. Profit margins largely track with sales volumes, demonstrating efficient scaling during high-demand months.
+            </div>
+        </div>
+    </div>
+
+    <!-- C. Category Breakdowns -->
+    <div class="chart-row grid-2">
+        <div class="chart-card">
+            <h3>Sales by Category</h3>
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="custom-legend" id="categoryLegend"></div>
+            <div class="insight-text">
+                Technology leads all categories with over $836K in sales, while Office Supplies drives the highest transaction volume.
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Sales by Region</h3>
+            <div class="chart-container">
+                <canvas id="regionChart"></canvas>
+            </div>
+            <div class="insight-text">
+                The West region dominates overall sales performance, followed closely by the East. The South region lags behind and represents a potential area for targeted campaigns.
+            </div>
+        </div>
+    </div>
+
+    <!-- E. Distribution Charts -->
+    <div class="chart-row grid-2">
+        <div class="chart-card">
+            <h3>Customer Segments</h3>
+            <div class="chart-container">
+                <canvas id="segmentChart"></canvas>
+            </div>
+            <div class="custom-legend" id="segmentLegend"></div>
+            <div class="insight-text">
+                Consumers make up the majority of the customer base (52%), providing a steady stream of retail revenue alongside B2B Corporate clients.
+            </div>
+        </div>
+        <div class="chart-card">
+            <h3>Top Sub-Categories by Profit</h3>
+            <div class="chart-container">
+                <canvas id="profitChart"></canvas>
+            </div>
+            <div class="insight-text">
+                Copiers and Phones generate the highest net profit. Conversely, Tables and Bookcases are running at a net loss—consider reviewing pricing, shipping costs, or discontinuing these lines.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Design Rules Colors
+        const colors = {
+            blue: '#378ADD',
+            teal: '#1D9E75',
+            amber: '#BA7517',
+            pink: '#D4537E',
+            red: '#E24B4A',
+            grid: '#333333'
+        };
+
+        Chart.defaults.color = '#A0A0A0';
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+        // 1. Trend Chart
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [
+                    {
+                        label: 'Avg Sales ($)',
+                        data: [42000, 31000, 55000, 36000, 44000, 52000, 45000, 63000, 87000, 77000, 118000, 83000],
+                        borderColor: colors.blue,
+                        backgroundColor: colors.blue + '20',
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    },
+                    {
+                        label: 'Avg Profit ($)',
+                        data: [8000, 4000, 9000, 5000, 7000, 8000, 6000, 9000, 13000, 11000, 17000, 14000],
+                        borderColor: colors.teal,
+                        backgroundColor: 'transparent',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false, color: colors.grid } },
+                    y: { grid: { color: colors.grid }, beginAtZero: true }
+                }
+            }
+        });
+
+        // 2. Category Chart (Donut)
+        const catData = [836154, 742000, 719047]; // Technology, Furniture, Office Supplies
+        const catLabels = ['Technology', 'Furniture', 'Office Supplies'];
+        const catColors = [colors.blue, colors.amber, colors.teal];
+
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: catLabels,
+                datasets: [{
+                    data: catData,
+                    backgroundColor: catColors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Legend for Category
+        const catLegend = document.getElementById('categoryLegend');
+        catLabels.forEach((label, i) => {
+            catLegend.innerHTML += `
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${catColors[i]}"></div>
+                    ${label}
+                </div>
+            `;
+        });
+
+        // 3. Region Chart (Bar)
+        new Chart(document.getElementById('regionChart'), {
+            type: 'bar',
+            data: {
+                labels: ['West', 'East', 'Central', 'South'],
+                datasets: [{
+                    data: [725457, 678781, 501239, 391721],
+                    backgroundColor: colors.blue,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: colors.grid }, beginAtZero: true }
+                }
+            }
+        });
+
+        // 4. Segment Chart (Donut)
+        const segData = [5191, 3020, 1783]; // Consumer, Corporate, Home Office (counts)
+        const segLabels = ['Consumer', 'Corporate', 'Home Office'];
+        const segColors = [colors.teal, colors.blue, colors.pink];
+
+        new Chart(document.getElementById('segmentChart'), {
+            type: 'doughnut',
+            data: {
+                labels: segLabels,
+                datasets: [{
+                    data: segData,
+                    backgroundColor: segColors,
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        const segLegend = document.getElementById('segmentLegend');
+        segLabels.forEach((label, i) => {
+            segLegend.innerHTML += `
+                <div class="legend-item">
+                    <div class="legend-color" style="background: ${segColors[i]}"></div>
+                    ${label}
+                </div>
+            `;
+        });
+
+        // 5. Profit Sub-Category Breakdown (Horizontal Bar)
+        new Chart(document.getElementById('profitChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Copiers', 'Phones', 'Accessories', 'Paper', 'Bookcases', 'Tables'],
+                datasets: [{
+                    data: [55617, 44515, 41936, 34053, -3472, -17725],
+                    backgroundColor: (ctx) => {
+                        return ctx.raw > 0 ? colors.teal : colors.red;
+                    }
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: colors.grid } },
+                    y: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
