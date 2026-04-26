@@ -9,3 +9,4 @@ xgboost
 openpyxl
 google-genai
 requests
+google.generativeai
