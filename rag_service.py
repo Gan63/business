@@ -1,5 +1,5 @@
 import os
-import google.generativeai as genai
+from google import genai
 import pandas as pd
 import json
 import requests
@@ -9,10 +9,10 @@ class RAGService:
         # Gemini Config
         self.google_api_key = os.environ.get("GOOGLE_API_KEY")
         if self.google_api_key:
-            genai.configure(api_key=self.google_api_key)
-            self.gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+            self.gemini_client = genai.Client(api_key=self.google_api_key)
+            self.gemini_model_name = 'gemini-1.5-flash'
         else:
-            self.gemini_model = None
+            self.gemini_client = None
         # OpenRouter Config
         self.openrouter_api_key = ""
         self.openrouter_url = "https://openrouter.ai/api/v1/chat/completions"
@@ -131,9 +131,12 @@ class RAGService:
         # Prioritize OpenRouter if key is available, else fallback to Gemini
         if self.openrouter_api_key:
             return self.query_openrouter(prompt)
-        elif self.gemini_model:
+        elif self.gemini_client:
             try:
-                response = self.gemini_model.generate_content(prompt)
+                response = self.gemini_client.models.generate_content(
+                    model=self.gemini_model_name,
+                    contents=prompt
+                )
                 return response.text
             except Exception as e:
                 return f"Gemini Error: {str(e)}"
