@@ -8,7 +8,6 @@ let lastUploadResult = null;
 document.addEventListener('DOMContentLoaded', () => {
     fetchLeads();
     updateFormCategories();
-    initChatDraggable();
 });
 
 
@@ -364,15 +363,6 @@ async function updateFormCategories() {
 }
 
 
-// Search Filter
-document.getElementById('searchInput').addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#leads-table-body tr');
-    rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(q) ? '' : 'none';
-    });
-});
 
 // Chatbot Logic
 const chatToggle = document.getElementById('chatbot-toggle');
@@ -494,28 +484,3 @@ if (dlBtn) {
     });
 }
 
-
-// Draggable Chat
-function initChatDraggable() {
-    const header = document.querySelector('.chat-header');
-    let isDragging = false;
-    let initialX, initialY, xOffset = 0, yOffset = 0;
-
-    header.addEventListener('mousedown', (e) => {
-        if (e.target.closest('#close-chat')) return;
-        initialX = e.clientX - xOffset;
-        initialY = e.clientY - yOffset;
-        isDragging = true;
-    });
-
-    document.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            e.preventDefault();
-            xOffset = e.clientX - initialX;
-            yOffset = e.clientY - initialY;
-            chatWindow.style.transform = `translate3d(${xOffset}px, ${yOffset}px, 0)`;
-        }
-    });
-
-    document.addEventListener('mouseup', () => { isDragging = false; });
-}
