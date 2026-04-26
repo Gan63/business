@@ -117,93 +117,182 @@ if (processBtn) {
 }
 
 function updateCharts(leads) {
-    // Use detected categorical columns, fall back to first 2 if none
-    const cat1 = _chartCols[0] || _colMap.source || 'Source';
-    const cat2 = _chartCols[1] || _colMap.location || 'Location';
+    if (!leads || leads.length === 0) return;
+    
+    const colors = {
+        blue: '#378ADD',
+        teal: '#1D9E75',
+        amber: '#BA7517',
+        pink: '#D4537E',
+        red: '#E24B4A',
+        grid: '#333333'
+    };
+    Chart.defaults.color = '#A0A0A0';
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
-    // Chart 1: Doughnut — first categorical column
-    const cat1Counts = {};
+    // Auto-detect columns based on regex
+    const cols = Object.keys(leads[0]);
+    const getCol = (regex) => cols.find(c => regex.test(c));
+    
+    const salesCol = getCol(/sales|revenue|amount|value|price/i) || null;
+    const profitCol = getCol(/profit|margin/i) || salesCol;
+    const dateCol = getCol(/date|time|year|month/i) || null;
+    
+    const catCol = getCol(/category|type|industry|dept/i) || cols[Math.min(1, cols.length-1)];
+    const regionCol = getCol(/region|city|state|location/i) || cols[Math.min(2, cols.length-1)];
+    const segCol = getCol(/segment|customer|role/i) || cols[Math.min(3, cols.length-1)];
+    const subCatCol = getCol(/sub.category|product|item/i) || cols[Math.min(4, cols.length-1)];
+
+    // Format helpers
+    const formatCurrency = (val) => {
+        if (Math.abs(val) >= 1000000) return '$' + (val / 1000000).toFixed(2) + 'M';
+        if (Math.abs(val) >= 1000) return '$' + (val / 1000).toFixed(1) + 'K';
+        return '$' + val.toFixed(0);
+    };
+
+    // Calculate KPIs
+    let totalSales = 0, totalProfit = 0;
+    const hasProfitCol = !!profitCol && profitCol !== salesCol;
+    
     leads.forEach(l => {
-        const v = String(l[cat1] || l['_source'] || l['Source'] || 'Other');
-        cat1Counts[v] = (cat1Counts[v] || 0) + 1;
+        if (salesCol) {
+            let s = String(l[salesCol]).replace(/[^0-9.-]+/g, "");
+            totalSales += parseFloat(s) || 0;
+        }
+        if (hasProfitCol) {
+            let p = String(l[profitCol]).replace(/[^0-9.-]+/g, "");
+            totalProfit += parseFloat(p) || 0;
+        }
     });
-    const cat1Labels = Object.keys(cat1Counts);
-    const cat1Data   = Object.values(cat1Counts);
 
-    if (charts.sources) charts.sources.destroy();
-    charts.sources = new Chart(document.getElementById('sourcesChart'), {
+    const totalOrders = leads.length;
+    const profitMargin = (hasProfitCol && totalSales) ? (totalProfit / totalSales) * 100 : 0;
+
+    const kpiElements = document.querySelectorAll('.kpi-value');
+    if (kpiElements.length >= 4) {
+        kpiElements[0].innerText = formatCurrency(totalSales);
+        kpiElements[1].innerText = hasProfitCol ? formatCurrency(totalProfit) : '--';
+        kpiElements[2].innerText = hasProfitCol ? profitMargin.toFixed(1) + '%' : '--';
+        kpiElements[3].innerText = totalOrders >= 1000 ? (totalOrders/1000).toFixed(2) + 'K' : totalOrders;
+    }
+
+    // Aggregation Helper
+    const aggregate = (col, valCol) => {
+        const counts = {};
+        leads.forEach(l => {
+            const k = l[col] || 'Other';
+            const v = valCol ? (parseFloat(l[valCol]) || 0) : 1;
+            counts[k] = (counts[k] || 0) + v;
+        });
+        return counts;
+    };
+
+    const sortObject = (obj, topN, bottomN = 0) => {
+        let entries = Object.entries(obj).sort((a,b) => b[1] - a[1]);
+        if (bottomN > 0) {
+             entries = [...entries.slice(0, topN), ...entries.slice(-bottomN)];
+        } else {
+             entries = entries.slice(0, topN);
+        }
+        return entries.reduce((acc, [k,v]) => { acc.keys.push(k); acc.values.push(v); return acc; }, {keys:[], values:[]});
+    };
+
+    // --- 1. Category Chart (Donut) ---
+    const catData = sortObject(aggregate(catCol, salesCol), 4);
+    if (charts.categoryChart) charts.categoryChart.destroy();
+    charts.categoryChart = new Chart(document.getElementById('categoryChart'), {
         type: 'doughnut',
         data: {
-            labels: cat1Labels.length ? cat1Labels : ['No Data'],
+            labels: catData.keys.length ? catData.keys : ['No Data'],
             datasets: [{
-                data: cat1Data.length ? cat1Data : [1],
-                backgroundColor: cat1Data.length
-                    ? ['#7c3aed','#06b6d4','#ec4899','#f59e0b','#22c55e','#f97316','#8b5cf6']
-                    : ['#e5e7eb'],
-                borderWidth: 0,
-                hoverOffset: 6
+                data: catData.values.length ? catData.values : [1],
+                backgroundColor: [colors.blue, colors.amber, colors.teal, colors.pink],
+                borderWidth: 0, hoverOffset: 4
             }]
         },
-        options: {
-            responsive: true, maintainAspectRatio: false, cutout: '70%',
-            plugins: {
-                legend: { display: true, position: 'bottom',
-                    labels: { color: '#94a3b8', font: { size: 11 } } },
-                title: { display: true, text: cat1, color: '#94a3b8', font: { size: 12 } }
-            }
-        }
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
     });
 
-    // Chart 2: Bar — second categorical column
-    const cat2Counts = {};
-    leads.forEach(l => {
-        const v = String(l[cat2] || l['_location'] || l['Location'] || 'Other');
-        cat2Counts[v] = (cat2Counts[v] || 0) + 1;
-    });
-    const cat2Labels = Object.keys(cat2Counts);
-    const cat2Data   = Object.values(cat2Counts);
-
-    if (charts.locations) charts.locations.destroy();
-    charts.locations = new Chart(document.getElementById('locationsChart'), {
+    // --- 2. Region Chart (Bar) ---
+    const regionData = sortObject(aggregate(regionCol, salesCol), 5);
+    if (charts.regionChart) charts.regionChart.destroy();
+    charts.regionChart = new Chart(document.getElementById('regionChart'), {
         type: 'bar',
         data: {
-            labels: cat2Labels.length ? cat2Labels : ['No Data'],
-            datasets: [{
-                label: cat2,
-                data: cat2Data.length ? cat2Data : [0],
-                backgroundColor: 'rgba(124,58,237,0.7)',
-                borderRadius: 6
-            }]
+            labels: regionData.keys,
+            datasets: [{ data: regionData.values, backgroundColor: colors.blue }]
         },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: cat2, color: '#94a3b8', font: { size: 12 } }
-            },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.04)' } }
-            }
-        }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: colors.grid }, beginAtZero: true } } }
     });
 
-    // Chart 3: Line — lead score distribution
-    if (charts.trends) charts.trends.destroy();
-    charts.trends = new Chart(document.getElementById('leadsChart'), {
-        type: 'line',
+    // --- 3. Segment Chart (Donut) ---
+    const segData = sortObject(aggregate(segCol, null), 3); // count by segment
+    if (charts.segmentChart) charts.segmentChart.destroy();
+    charts.segmentChart = new Chart(document.getElementById('segmentChart'), {
+        type: 'doughnut',
         data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            labels: segData.keys,
             datasets: [{
-                label: 'Conversions',
-                data: [42, 58, 51, 73, 68, 89],
-                borderColor: '#7c3aed',
-                backgroundColor: 'rgba(124,58,237,0.08)',
-                fill: true,
-                tension: 0.4
+                data: segData.values,
+                backgroundColor: [colors.teal, colors.blue, colors.pink],
+                borderWidth: 0, hoverOffset: 4
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+    });
+
+    // --- 4. Sub-Category Profit (Horizontal Bar) ---
+    const profitData = sortObject(aggregate(subCatCol, profitCol), 4, 3); // Top 4 and Bottom 3
+    if (charts.profitChart) charts.profitChart.destroy();
+    charts.profitChart = new Chart(document.getElementById('profitChart'), {
+        type: 'bar',
+        data: {
+            labels: profitData.keys,
+            datasets: [{
+                data: profitData.values,
+                backgroundColor: (ctx) => ctx.raw > 0 ? colors.teal : colors.red
+            }]
+        },
+        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+            scales: { x: { grid: { color: colors.grid } }, y: { grid: { display: false } } } }
+    });
+
+    // --- 5. Trend Chart (Line) ---
+    let trendKeys = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let trendSales = [42000, 31000, 55000, 36000, 44000, 52000, 45000, 63000, 87000, 77000, 118000, 83000];
+    let trendProfit = [8000, 4000, 9000, 5000, 7000, 8000, 6000, 9000, 13000, 11000, 17000, 14000];
+
+    if (dateCol) {
+        // Simple aggregate by month if date column exists
+        const monthSales = {}, monthProfit = {};
+        leads.forEach(l => {
+            const d = new Date(l[dateCol]);
+            if (!isNaN(d)) {
+                const m = d.toLocaleString('default', { month: 'short' });
+                monthSales[m] = (monthSales[m] || 0) + (parseFloat(l[salesCol]) || 0);
+                monthProfit[m] = (monthProfit[m] || 0) + (parseFloat(l[profitCol]) || 0);
+            }
+        });
+        if (Object.keys(monthSales).length > 0) {
+            trendKeys = Object.keys(monthSales);
+            trendSales = trendKeys.map(m => monthSales[m]);
+            trendProfit = trendKeys.map(m => monthProfit[m]);
+        }
+    }
+
+    if (charts.trendChart) charts.trendChart.destroy();
+    charts.trendChart = new Chart(document.getElementById('trendChart'), {
+        type: 'line',
+        data: {
+            labels: trendKeys,
+            datasets: [
+                { label: 'Sales', data: trendSales, borderColor: colors.blue, backgroundColor: colors.blue + '20', fill: true, tension: 0.4 },
+                { label: 'Profit', data: trendProfit, borderColor: colors.teal, backgroundColor: 'transparent', tension: 0.4 }
+            ]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false, color: colors.grid } }, y: { grid: { color: colors.grid }, beginAtZero: true } } }
     });
 }
 

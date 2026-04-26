@@ -87,6 +87,7 @@ def get_categories():
 def index():
     return render_template('index.html')
 
+@app.route('/superstore.html')
 @app.route('/superstore')
 def superstore():
     return render_template('superstore.html')
