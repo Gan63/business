@@ -14,7 +14,7 @@ class RAGService:
         else:
             self.gemini_model = None
         # OpenRouter Config
-        self.openrouter_api_key = "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"
+        self.openrouter_api_key = ""
         self.openrouter_url = "https://openrouter.ai/api/v1/chat/completions"
 
     def get_leads_context(self, leads):
