@@ -7,5 +7,5 @@ numpy
 joblib
 xgboost
 openpyxl
-google-generativeai
+google-genai
 requests
